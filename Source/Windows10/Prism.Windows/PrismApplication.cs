@@ -509,10 +509,11 @@ namespace Prism.Windows
                 await OnSuspendingApplicationAsync();
 
                 //Bootstrap inform navigation service that app is suspending.
-                NavigationService.Suspending();
+                NavigationService?.Suspending();
 
                 // Save application state
-                await SessionStateService.SaveAsync();
+                if (SessionStateService != null)
+                    await SessionStateService.SaveAsync();
 
                 deferral.Complete();
             }
