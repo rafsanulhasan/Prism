@@ -1,7 +1,5 @@
-﻿using System;
 using DryIoc;
-using Prism.Ioc;
-using Prism.Regions;
+using ExceptionExtensions = System.ExceptionExtensions;
 
 namespace Prism.DryIoc
 {
@@ -22,11 +20,11 @@ namespace Prism.DryIoc
         /// <returns>A new <see cref="DryIocContainerExtension"/>.</returns>
         protected override IContainerExtension CreateContainerExtension()
         {
-            return new DryIocContainerExtension(new Container(CreateContainerRules()));
+            return new DryIocContainerExtension(CreateContainerRules());
         }
 
         /// <summary>
-        /// Registers the <see cref="Type"/>s of the Exceptions that are not considered 
+        /// Registers the <see cref="Type"/>s of the Exceptions that are not considered
         /// root exceptions by the <see cref="ExceptionExtensions"/>.
         /// </summary>
         protected override void RegisterFrameworkExceptionTypes()

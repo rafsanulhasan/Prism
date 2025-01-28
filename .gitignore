@@ -205,3 +205,12 @@ FakesAssemblies/
 
 # Jetbrains files
 .idea*
+
+# Binlog
+*.binlog
+
+# macOS
+.DS_Store
+
+# VSCode
+.mono

@@ -4,18 +4,26 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Windows.Input;
+using Prism.Common;
+using Prism.Mvvm;
 
+#nullable enable
 namespace Prism.Commands
 {
     /// <summary>
     /// An <see cref="ICommand"/> whose delegates can be attached for <see cref="Execute"/> and <see cref="CanExecute"/>.
     /// </summary>
-    public abstract class DelegateCommandBase : ICommand, IActiveAware
+    public abstract class DelegateCommandBase : BindableBase, ICommand, IActiveAware
     {
         private bool _isActive;
 
-        private SynchronizationContext _synchronizationContext;
-        private readonly HashSet<string> _observedPropertiesExpressions = new HashSet<string>();
+        private SynchronizationContext? _synchronizationContext;
+        private readonly HashSet<string> _observedPropertiesExpressions = new();
+
+        /// <summary>
+        /// Provides an Exception Handler to register callbacks or handle encountered exceptions within 
+        /// </summary>
+        protected readonly MulticastExceptionHandler ExceptionHandler = new();
 
         /// <summary>
         /// Creates a new instance of a <see cref="DelegateCommandBase"/>, specifying both the execute action and the can execute function.
@@ -28,11 +36,11 @@ namespace Prism.Commands
         /// <summary>
         /// Occurs when changes occur that affect whether or not the command should execute.
         /// </summary>
-        public virtual event EventHandler CanExecuteChanged;
+        public virtual event EventHandler? CanExecuteChanged;
 
         /// <summary>
         /// Raises <see cref="ICommand.CanExecuteChanged"/> so every 
-        /// command invoker can requery <see cref="ICommand.CanExecute"/>.
+        /// command invoker can re-query <see cref="ICommand.CanExecute"/>.
         /// </summary>
         protected virtual void OnCanExecuteChanged()
         {
@@ -48,7 +56,7 @@ namespace Prism.Commands
 
         /// <summary>
         /// Raises <see cref="CanExecuteChanged"/> so every command invoker
-        /// can requery to check if the command can execute.
+        /// can re-query to check if the command can execute.
         /// </summary>
         /// <remarks>Note that this will trigger the execution of <see cref="CanExecuteChanged"/> once for each invoker.</remarks>
         [SuppressMessage("Microsoft.Design", "CA1030:UseEventsWhereAppropriate")]
@@ -57,12 +65,12 @@ namespace Prism.Commands
             OnCanExecuteChanged();
         }
 
-        void ICommand.Execute(object parameter)
+        void ICommand.Execute(object? parameter)
         {
             Execute(parameter);
         }
 
-        bool ICommand.CanExecute(object parameter)
+        bool ICommand.CanExecute(object? parameter)
         {
             return CanExecute(parameter);
         }
@@ -71,14 +79,14 @@ namespace Prism.Commands
         /// Handle the internal invocation of <see cref="ICommand.Execute(object)"/>
         /// </summary>
         /// <param name="parameter">Command Parameter</param>
-        protected abstract void Execute(object parameter);
+        protected abstract void Execute(object? parameter);
 
         /// <summary>
         /// Handle the internal invocation of <see cref="ICommand.CanExecute(object)"/>
         /// </summary>
         /// <param name="parameter"></param>
         /// <returns><see langword="true"/> if the Command Can Execute, otherwise <see langword="false" /></returns>
-        protected abstract bool CanExecute(object parameter);
+        protected abstract bool CanExecute(object? parameter);
 
         /// <summary>
         /// Observes a property that implements INotifyPropertyChanged, and automatically calls DelegateCommandBase.RaiseCanExecuteChanged on property changed notifications.
@@ -89,7 +97,7 @@ namespace Prism.Commands
         {
             if (_observedPropertiesExpressions.Contains(propertyExpression.ToString()))
             {
-                throw new ArgumentException($"{propertyExpression.ToString()} is already being observed.",
+                throw new ArgumentException($"{propertyExpression} is already being observed.",
                     nameof(propertyExpression));
             }
             else
@@ -107,24 +115,17 @@ namespace Prism.Commands
         /// <value><see langword="true" /> if the object is active; otherwise <see langword="false" />.</value>
         public bool IsActive
         {
-            get { return _isActive; }
-            set
-            {
-                if (_isActive != value)
-                {
-                    _isActive = value;
-                    OnIsActiveChanged();
-                }
-            }
+            get => _isActive;
+            set => SetProperty(ref _isActive, value, OnIsActiveChanged);
         }
 
         /// <summary>
         /// Fired if the <see cref="IsActive"/> property changes.
         /// </summary>
-        public virtual event EventHandler IsActiveChanged;
+        public virtual event EventHandler? IsActiveChanged;
 
         /// <summary>
-        /// This raises the <see cref="DelegateCommandBase.IsActiveChanged"/> event.
+        /// This raises the <see cref="IsActiveChanged"/> event.
         /// </summary>
         protected virtual void OnIsActiveChanged()
         {

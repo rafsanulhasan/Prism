@@ -1,11 +1,11 @@
 ﻿using System;
 using Moq;
+using Prism.Container.Unity;
 using Prism.Container.Wpf.Mocks;
 using Prism.Events;
 using Prism.Ioc;
 using Prism.Modularity;
-using Prism.Regions;
-using Prism.Unity;
+using Prism.Navigation.Regions;
 using Unity;
 using Unity.Lifetime;
 using Xunit;

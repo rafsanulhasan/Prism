@@ -3,7 +3,8 @@ using System.Collections.Specialized;
 using System.Linq;
 using Moq;
 using Prism.Ioc;
-using Prism.Regions;
+using Prism.Navigation;
+using Prism.Navigation.Regions;
 using Prism.Wpf.Tests.Mocks;
 using Xunit;
 
@@ -14,6 +15,7 @@ namespace Prism.Wpf.Tests.Regions
         [Fact]
         public void WhenRegionConstructed_SortComparisonIsDefault()
         {
+            ContainerLocator.SetContainerExtension(Mock.Of<IContainerExtension>());
             IRegion region = new Region();
 
             Assert.NotNull(region.SortComparison);
@@ -23,6 +25,7 @@ namespace Prism.Wpf.Tests.Regions
         [Fact]
         public void CanAddContentToRegion()
         {
+            ContainerLocator.SetContainerExtension(Mock.Of<IContainerExtension>());
             IRegion region = new Region();
 
             Assert.Empty(region.Views.Cast<object>());
@@ -63,6 +66,7 @@ namespace Prism.Wpf.Tests.Regions
         [Fact]
         public void RegionExposesCollectionOfContainedViews()
         {
+            ContainerLocator.SetContainerExtension(Mock.Of<IContainerExtension>());
             IRegion region = new Region();
 
             object view = new object();
@@ -79,6 +83,7 @@ namespace Prism.Wpf.Tests.Regions
         [Fact]
         public void CanAddAndRetrieveNamedViewInstance()
         {
+            ContainerLocator.SetContainerExtension(Mock.Of<IContainerExtension>());
             IRegion region = new Region();
             object myView = new object();
             region.Add(myView, "MyView");
@@ -104,6 +109,7 @@ namespace Prism.Wpf.Tests.Regions
         [Fact]
         public void AddNamedViewIsAlsoListedInViewsCollection()
         {
+            ContainerLocator.SetContainerExtension(Mock.Of<IContainerExtension>());
             IRegion region = new Region();
             object myView = new object();
 
@@ -137,6 +143,7 @@ namespace Prism.Wpf.Tests.Regions
         [Fact]
         public void AddNamedViewWithNullOrEmptyStringNameThrows()
         {
+            ContainerLocator.SetContainerExtension(Mock.Of<IContainerExtension>());
             var ex = Assert.Throws<ArgumentException>(() =>
             {
                 IRegion region = new Region();
@@ -149,6 +156,7 @@ namespace Prism.Wpf.Tests.Regions
         [Fact]
         public void GetViewReturnsNullAfterRemovingViewFromRegion()
         {
+            ContainerLocator.SetContainerExtension(Mock.Of<IContainerExtension>());
             IRegion region = new Region();
             object myView = new object();
             region.Add(myView, "MyView");
@@ -173,6 +181,7 @@ namespace Prism.Wpf.Tests.Regions
         [Fact]
         public void AddViewPassesSameScopeByDefaultToNamedView()
         {
+            ContainerLocator.SetContainerExtension(Mock.Of<IContainerExtension>());
             var regionManager = new MockRegionManager();
             IRegion region = new Region();
             region.RegionManager = regionManager;
@@ -184,8 +193,9 @@ namespace Prism.Wpf.Tests.Regions
         }
 
         [Fact]
-        public void AddViewPassesDiferentScopeWhenAdding()
+        public void AddViewPassesDifferentScopeWhenAdding()
         {
+            ContainerLocator.SetContainerExtension(Mock.Of<IContainerExtension>());
             var regionManager = new MockRegionManager();
             IRegion region = new Region();
             region.RegionManager = regionManager;
@@ -199,6 +209,8 @@ namespace Prism.Wpf.Tests.Regions
         [Fact]
         public void CreatingNewScopesAsksTheRegionManagerForNewInstance()
         {
+            ContainerLocator.SetContainerExtension(Mock.Of<IContainerExtension>());
+            ContainerLocator.SetContainerExtension(Mock.Of<IContainerExtension>());
             var regionManager = new MockRegionManager();
             IRegion region = new Region();
             region.RegionManager = regionManager;
@@ -212,6 +224,7 @@ namespace Prism.Wpf.Tests.Regions
         [Fact]
         public void AddViewReturnsExistingRegionManager()
         {
+            ContainerLocator.SetContainerExtension(Mock.Of<IContainerExtension>());
             var regionManager = new MockRegionManager();
             IRegion region = new Region();
             region.RegionManager = regionManager;
@@ -289,6 +302,7 @@ namespace Prism.Wpf.Tests.Regions
         [Fact]
         public void AddViewRaisesCollectionViewEvent()
         {
+            ContainerLocator.SetContainerExtension(Mock.Of<IContainerExtension>());
             bool viewAddedCalled = false;
 
             IRegion region = new Region();
@@ -308,6 +322,7 @@ namespace Prism.Wpf.Tests.Regions
         [Fact]
         public void ViewAddedEventPassesTheViewAddedInTheEventArgs()
         {
+            ContainerLocator.SetContainerExtension(Mock.Of<IContainerExtension>());
             object viewAdded = null;
 
             IRegion region = new Region();
@@ -329,6 +344,7 @@ namespace Prism.Wpf.Tests.Regions
         [Fact]
         public void RemoveViewFiresViewRemovedEvent()
         {
+            ContainerLocator.SetContainerExtension(Mock.Of<IContainerExtension>());
             bool viewRemoved = false;
 
             IRegion region = new Region();
@@ -350,6 +366,7 @@ namespace Prism.Wpf.Tests.Regions
         [Fact]
         public void ViewRemovedEventPassesTheViewRemovedInTheEventArgs()
         {
+            ContainerLocator.SetContainerExtension(Mock.Of<IContainerExtension>());
             object removedView = null;
 
             IRegion region = new Region();
@@ -412,6 +429,7 @@ namespace Prism.Wpf.Tests.Regions
         [Fact]
         public void RemovingViewAlsoRemovesItFromActiveViews()
         {
+            ContainerLocator.SetContainerExtension(Mock.Of<IContainerExtension>());
             IRegion region = new Region();
             object model = new object();
             region.Add(model);
@@ -426,6 +444,7 @@ namespace Prism.Wpf.Tests.Regions
         [Fact]
         public void ShouldGetNotificationWhenContextChanges()
         {
+            ContainerLocator.SetContainerExtension(Mock.Of<IContainerExtension>());
             IRegion region = new Region();
             bool contextChanged = false;
             region.PropertyChanged += (s, args) => { if (args.PropertyName == "Context") contextChanged = true; };
@@ -470,7 +489,7 @@ namespace Prism.Wpf.Tests.Regions
                 throw new NotImplementedException();
             }
 
-            public IRegionManager RegisterViewWithRegion(string regionName, Func<object> getContentDelegate)
+            public IRegionManager RegisterViewWithRegion(string regionName, Func<IContainerProvider, object> getContentDelegate)
             {
                 throw new NotImplementedException();
             }
@@ -495,22 +514,22 @@ namespace Prism.Wpf.Tests.Regions
                 throw new NotImplementedException();
             }
 
-            public void RequestNavigate(string regionName, Uri target, Action<NavigationResult> navigationCallback, NavigationParameters navigationParameters)
+            public void RequestNavigate(string regionName, Uri target, Action<NavigationResult> navigationCallback, INavigationParameters navigationParameters)
             {
                 throw new NotImplementedException();
             }
 
-            public void RequestNavigate(string regionName, string target, Action<NavigationResult> navigationCallback, NavigationParameters navigationParameters)
+            public void RequestNavigate(string regionName, string target, Action<NavigationResult> navigationCallback, INavigationParameters navigationParameters)
             {
                 throw new NotImplementedException();
             }
 
-            public void RequestNavigate(string regionName, Uri target, NavigationParameters navigationParameters)
+            public void RequestNavigate(string regionName, Uri target, INavigationParameters navigationParameters)
             {
                 throw new NotImplementedException();
             }
 
-            public void RequestNavigate(string regionName, string target, NavigationParameters navigationParameters)
+            public void RequestNavigate(string regionName, string target, INavigationParameters navigationParameters)
             {
                 throw new NotImplementedException();
             }
@@ -562,7 +581,7 @@ namespace Prism.Wpf.Tests.Regions
                 var containerMock = new Mock<IContainerExtension>();
                 containerMock.Setup(x => x.Resolve(typeof(IRegionNavigationService))).Returns(mockRegionNavigationService.Object);
                 ContainerLocator.ResetContainer();
-                ContainerLocator.SetContainerExtension(() => containerMock.Object);
+                ContainerLocator.SetContainerExtension(containerMock.Object);
 
                 // Act
                 region.RequestNavigate(uri, navigationCallback, navigationParameters);
@@ -579,6 +598,7 @@ namespace Prism.Wpf.Tests.Regions
         [Fact]
         public void WhenViewsWithSortHintsAdded_RegionSortsViews()
         {
+            ContainerLocator.SetContainerExtension(Mock.Of<IContainerExtension>());
             IRegion region = new Region();
 
             object view1 = new ViewOrder1();
@@ -598,6 +618,7 @@ namespace Prism.Wpf.Tests.Regions
         [StaFact]
         public void WhenViewHasBeenRemovedAndRegionManagerPropertyCleared_ThenItCanBeAddedAgainToARegion()
         {
+            ContainerLocator.SetContainerExtension(Mock.Of<IContainerExtension>());
             IRegion region = new Region { RegionManager = new MockRegionManager() };
 
             var view = new MockFrameworkElement();

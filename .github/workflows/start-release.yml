@@ -1,0 +1,123 @@
+name: Start NuGet Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-prism-core:
+    uses: avantipoint/workflow-templates/.github/workflows/dotnet-build.yml@v1
+    with:
+      name: Build Prism.Core
+      solution-path: PrismLibrary_Core.slnf
+      code-sign: true
+      artifact-name: Core
+      build-args: /p:OfficialRelease=true
+    secrets:
+      codeSignKeyVault: ${{ secrets.CodeSignKeyVault }}
+      codeSignClientId: ${{ secrets.CodeSignClientId }}
+      codeSignTenantId: ${{ secrets.CodeSignTenantId }}
+      codeSignClientSecret: ${{ secrets.CodeSignClientSecret }}
+      codeSignCertificate: ${{ secrets.CodeSignCertificate }}
+
+  build-prism-wpf:
+    uses: avantipoint/workflow-templates/.github/workflows/dotnet-build.yml@v1
+    with:
+      name: Build Prism.Wpf
+      solution-path: PrismLibrary_Wpf.slnf
+      code-sign: true
+      artifact-name: Wpf
+      build-args: /p:OfficialRelease=true
+    secrets:
+      codeSignKeyVault: ${{ secrets.CodeSignKeyVault }}
+      codeSignClientId: ${{ secrets.CodeSignClientId }}
+      codeSignTenantId: ${{ secrets.CodeSignTenantId }}
+      codeSignClientSecret: ${{ secrets.CodeSignClientSecret }}
+      codeSignCertificate: ${{ secrets.CodeSignCertificate }}
+
+  build-prism-uno:
+    uses: avantipoint/workflow-templates/.github/workflows/msbuild-build.yml@v1
+    with:
+      name: Build Prism.Uno
+      solution-path: PrismLibrary_Uno.slnf
+      windows-sdk-version: 18362
+      dotnet-version: 8.0.300
+      install-workload: ios android macos maccatalyst wasm-tools
+      uno-check: false
+      uno-check-version: 1.25.1
+      uno-check-parameters: '--skip xcode --skip gtk3 --skip vswin --skip androidemulator --skip androidsdk --skip vsmac --skip dotnetnewunotemplates'
+      run-tests: false
+      code-sign: true
+      artifact-name: Uno
+      build-args: /p:OfficialRelease=true
+    secrets:
+      codeSignKeyVault: ${{ secrets.CodeSignKeyVault }}
+      codeSignClientId: ${{ secrets.CodeSignClientId }}
+      codeSignTenantId: ${{ secrets.CodeSignTenantId }}
+      codeSignClientSecret: ${{ secrets.CodeSignClientSecret }}
+      codeSignCertificate: ${{ secrets.CodeSignCertificate }}
+
+  build-prism-maui:
+    uses: avantipoint/workflow-templates/.github/workflows/dotnet-build.yml@v1
+    with:
+      name: Build Prism.Maui
+      solution-path: PrismLibrary_Maui.slnf
+      dotnet-version: 8.0.x
+      install-workload: maui maui-tizen
+      code-sign: true
+      artifact-name: Maui
+      build-args: /p:OfficialRelease=true
+    secrets:
+      codeSignKeyVault: ${{ secrets.CodeSignKeyVault }}
+      codeSignClientId: ${{ secrets.CodeSignClientId }}
+      codeSignTenantId: ${{ secrets.CodeSignTenantId }}
+      codeSignClientSecret: ${{ secrets.CodeSignClientSecret }}
+      codeSignCertificate: ${{ secrets.CodeSignCertificate }}
+
+  generate-consolidated-artifacts:
+    needs: [build-prism-core, build-prism-wpf, build-prism-uno]
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Download Core
+        uses: actions/download-artifact@v3
+        with:
+          name: Core
+          path: artifacts\Core
+
+      - name: Download Wpf
+        uses: actions/download-artifact@v3
+        with:
+          name: Wpf
+          path: artifacts\Wpf
+
+      - name: Download Uno
+        uses: actions/download-artifact@v3
+        with:
+          name: Uno
+          path: artifacts\Uno
+
+      - name: Download Maui
+        uses: actions/download-artifact@v3
+        with:
+          name: Maui
+          path: artifacts\Maui
+
+      - name: Consolidate Artifacts
+        run: build\consolidate-artifacts.ps1
+        shell: powershell
+
+      - name: Upload Consolidated NuGets
+        uses: actions/upload-artifact@v3
+        with:
+          name: NuGet
+          path: .\artifacts\nuget
+
+  release:
+    uses: avantipoint/workflow-templates/.github/workflows/generate-release.yml@v1
+    needs: [generate-consolidated-artifacts]
+    permissions:
+      contents: write
+    with:
+      package-name: Prism.Core

@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Threading.Tasks;
 using Moq;
 using Prism.Ioc;
-using Prism.Regions;
+using Prism.Navigation.Regions;
 using Prism.Wpf.Tests.Mocks;
 using Xunit;
 
@@ -168,7 +169,7 @@ namespace Prism.Wpf.Tests.Regions
         }
 
         [Fact]
-        public void ShouldNotPreventSubscribersToStaticEventFromBeingGarbageCollected()
+        public async Task ShouldNotPreventSubscribersToStaticEventFromBeingGarbageCollected()
         {
             var subscriber = new MySubscriberClass();
             RegionManager.UpdatingRegions += subscriber.OnUpdatingRegions;
@@ -177,6 +178,7 @@ namespace Prism.Wpf.Tests.Regions
             WeakReference subscriberWeakReference = new WeakReference(subscriber);
 
             subscriber = null;
+            await Task.Delay(50);
             GC.Collect();
 
             Assert.False(subscriberWeakReference.IsAlive);
@@ -232,6 +234,7 @@ namespace Prism.Wpf.Tests.Regions
         [Fact]
         public void WhenAddingRegions_ThenRegionsCollectionNotifiesUpdate()
         {
+            ContainerLocator.SetContainerExtension(Mock.Of<IContainerExtension>());
             var regionManager = new RegionManager();
 
             var region1 = new Region { Name = "region1" };
@@ -260,6 +263,7 @@ namespace Prism.Wpf.Tests.Regions
         [Fact]
         public void WhenRemovingRegions_ThenRegionsCollectionNotifiesUpdate()
         {
+            ContainerLocator.SetContainerExtension(Mock.Of<IContainerExtension>());
             var regionManager = new RegionManager();
 
             var region1 = new Region { Name = "region1" };
@@ -291,6 +295,7 @@ namespace Prism.Wpf.Tests.Regions
         [Fact]
         public void WhenRemovingNonExistingRegion_ThenRegionsCollectionDoesNotNotifyUpdate()
         {
+            ContainerLocator.SetContainerExtension(Mock.Of<IContainerExtension>());
             var regionManager = new RegionManager();
 
             var region1 = new Region { Name = "region1" };
@@ -344,7 +349,7 @@ namespace Prism.Wpf.Tests.Regions
                 };
                 var containerMock = new Mock<IContainerExtension>();
                 containerMock.Setup(c => c.Resolve(typeof(IRegionViewRegistry))).Returns(mockRegionContentRegistry);
-                ContainerLocator.SetContainerExtension(() => containerMock.Object);
+                ContainerLocator.SetContainerExtension(containerMock.Object);
 
                 var regionManager = new RegionManager();
 
@@ -380,7 +385,7 @@ namespace Prism.Wpf.Tests.Regions
                 var containerMock = new Mock<IContainerExtension>();
                 containerMock.Setup(c => c.Resolve(typeof(IRegionViewRegistry))).Returns(mockRegionContentRegistry);
                 ContainerLocator.ResetContainer();
-                ContainerLocator.SetContainerExtension(() => containerMock.Object);
+                ContainerLocator.SetContainerExtension(containerMock.Object);
 
                 var regionManager = new RegionManager();
 
@@ -406,9 +411,9 @@ namespace Prism.Wpf.Tests.Regions
                 var mockRegionContentRegistry = new MockRegionContentRegistry();
 
                 string regionName = null;
-                Func<object> contentDelegate = null;
+                Func<IContainerProvider, object> contentDelegate = null;
 
-                Func<object> expectedDelegate = () => true;
+                Func<IContainerProvider, object> expectedDelegate = _ => true;
                 mockRegionContentRegistry.RegisterContentWithDelegate = (name, usedDelegate) =>
                 {
                     regionName = name;
@@ -417,7 +422,7 @@ namespace Prism.Wpf.Tests.Regions
                 };
                 var containerMock = new Mock<IContainerExtension>();
                 containerMock.Setup(c => c.Resolve(typeof(IRegionViewRegistry))).Returns(mockRegionContentRegistry);
-                ContainerLocator.SetContainerExtension(() => containerMock.Object);
+                ContainerLocator.SetContainerExtension(containerMock.Object);
 
                 var regionManager = new RegionManager();
 
@@ -472,11 +477,16 @@ namespace Prism.Wpf.Tests.Regions
     internal class MockRegionContentRegistry : IRegionViewRegistry
     {
         public Func<string, Type, object> RegisterContentWithViewType;
-        public Func<string, Func<object>, object> RegisterContentWithDelegate;
+        public Func<string, Func<IContainerProvider, object>, object> RegisterContentWithDelegate;
         public event EventHandler<ViewRegisteredEventArgs> ContentRegistered;
-        public IEnumerable<object> GetContents(string regionName)
+        public IEnumerable<object> GetContents(string regionName, IContainerProvider container)
         {
             return null;
+        }
+
+        public void RegisterViewWithRegion(string regionName, string targetName)
+        {
+            throw new NotImplementedException();
         }
 
         void IRegionViewRegistry.RegisterViewWithRegion(string regionName, Type viewType)
@@ -484,7 +494,7 @@ namespace Prism.Wpf.Tests.Regions
             RegisterContentWithViewType?.Invoke(regionName, viewType);
         }
 
-        void IRegionViewRegistry.RegisterViewWithRegion(string regionName, Func<object> getContentDelegate)
+        void IRegionViewRegistry.RegisterViewWithRegion(string regionName, Func<IContainerProvider, object> getContentDelegate)
         {
             RegisterContentWithDelegate?.Invoke(regionName, getContentDelegate);
 

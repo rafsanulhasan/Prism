@@ -1,8 +1,7 @@
-
-
 using System;
 using System.ComponentModel;
-using Prism.Regions;
+using Prism.Navigation;
+using Prism.Navigation.Regions;
 
 namespace Prism.Wpf.Tests.Mocks
 {
@@ -15,6 +14,9 @@ namespace Prism.Wpf.Tests.Mocks
         {
             Behaviors = new MockRegionBehaviorCollection();
         }
+
+        public IRegionManager Add(string viewName) => throw new NotImplementedException();
+
         public IRegionManager Add(object view)
         {
             MockViews.Items.Add(view);
@@ -78,7 +80,7 @@ namespace Prism.Wpf.Tests.Mocks
             }
         }
 
-        public NavigationParameters NavigationParameters
+        public INavigationParameters NavigationParameters
         {
             get { throw new System.NotImplementedException(); }
             set { throw new System.NotImplementedException(); }
@@ -115,7 +117,7 @@ namespace Prism.Wpf.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public void RequestNavigate(Uri target, Action<NavigationResult> navigationCallback, NavigationParameters navigationParameters)
+        public void RequestNavigate(Uri target, Action<NavigationResult> navigationCallback, INavigationParameters navigationParameters)
         {
             throw new NotImplementedException();
         }

@@ -4,12 +4,12 @@ using System.Linq;
 using System.Windows;
 using Moq;
 using Prism.Ioc;
-using Prism.Regions;
+using Prism.Navigation;
+using Prism.Navigation.Regions;
 using Xunit;
 
 namespace Prism.Wpf.Tests.Regions
 {
-
     public class RegionNavigationServiceFixture
     {
         [Fact]
@@ -40,7 +40,7 @@ namespace Prism.Wpf.Tests.Regions
 
             // Act
             bool isNavigationSuccessful = false;
-            target.RequestNavigate(viewUri, nr => isNavigationSuccessful = nr.Result == true);
+            target.RequestNavigate(viewUri, nr => isNavigationSuccessful = nr.Success == true);
 
             // Verify
             Assert.True(isNavigationSuccessful);
@@ -76,7 +76,7 @@ namespace Prism.Wpf.Tests.Regions
 
             // Act
             bool isNavigationSuccessful = false;
-            target.RequestNavigate(viewUri, nr => isNavigationSuccessful = nr.Result == true);
+            target.RequestNavigate(viewUri, nr => isNavigationSuccessful = nr.Success == true);
 
             // Verify
             Assert.True(isNavigationSuccessful);
@@ -116,7 +116,7 @@ namespace Prism.Wpf.Tests.Regions
                 new Uri(otherType.GetType().Name, UriKind.Relative),
                 nr =>
                 {
-                    error = nr.Error;
+                    error = nr.Exception;
                 });
 
             // Verify
@@ -148,9 +148,9 @@ namespace Prism.Wpf.Tests.Regions
             target.RequestNavigate((Uri)null, nr => navigationResult = nr);
 
             // Verify
-            Assert.False(navigationResult.Result.Value);
-            Assert.NotNull(navigationResult.Error);
-            Assert.IsType<ArgumentNullException>(navigationResult.Error);
+            Assert.False(navigationResult.Success);
+            Assert.NotNull(navigationResult.Exception);
+            Assert.IsType<ArgumentNullException>(navigationResult.Exception);
         }
 
         [Fact]
@@ -279,6 +279,7 @@ namespace Prism.Wpf.Tests.Regions
             containerMock.Setup(x => x.Resolve(typeof(IRegionNavigationJournalEntry))).Returns(journalEntry);
 
             IContainerExtension container = containerMock.Object;
+            ContainerLocator.SetContainerExtension(container);
             RegionNavigationContentLoader contentLoader = new RegionNavigationContentLoader(container);
 
             var journalMock = new Mock<IRegionNavigationJournal>();
@@ -435,7 +436,7 @@ namespace Prism.Wpf.Tests.Regions
 
             // Act
             var navigationSucceeded = false;
-            target.RequestNavigate(navigationUri, nr => { navigationSucceeded = nr.Result == true; });
+            target.RequestNavigate(navigationUri, nr => { navigationSucceeded = nr.Success == true; });
 
             // Verify
             view1Mock.VerifyAll();
@@ -480,7 +481,7 @@ namespace Prism.Wpf.Tests.Regions
 
             // Act
             var navigationFailed = false;
-            target.RequestNavigate(navigationUri, nr => { navigationFailed = nr.Result == false; });
+            target.RequestNavigate(navigationUri, nr => { navigationFailed = nr.Success == false; });
 
             // Verify
             view1Mock.VerifyAll();
@@ -567,7 +568,7 @@ namespace Prism.Wpf.Tests.Regions
 
             // Act
             var navigationSucceeded = false;
-            target.RequestNavigate(navigationUri, nr => { navigationSucceeded = nr.Result == true; });
+            target.RequestNavigate(navigationUri, nr => { navigationSucceeded = nr.Success == true; });
 
             // Verify
             view1DataContextMock.VerifyAll();
@@ -614,7 +615,7 @@ namespace Prism.Wpf.Tests.Regions
 
             // Act
             var navigationFailed = false;
-            target.RequestNavigate(navigationUri, nr => { navigationFailed = nr.Result == false; });
+            target.RequestNavigate(navigationUri, nr => { navigationFailed = nr.Success == false; });
 
             // Verify
             view1DataContextMock.VerifyAll();
@@ -662,8 +663,8 @@ namespace Prism.Wpf.Tests.Regions
 
             bool firstNavigation = false;
             bool secondNavigation = false;
-            target.RequestNavigate(navigationUri, nr => firstNavigation = nr.Result.Value);
-            target.RequestNavigate(navigationUri, nr => secondNavigation = nr.Result.Value);
+            target.RequestNavigate(navigationUri, nr => firstNavigation = nr.Success);
+            target.RequestNavigate(navigationUri, nr => secondNavigation = nr.Success);
 
             Assert.Equal(2, confirmationRequests.Count);
 
@@ -717,8 +718,8 @@ namespace Prism.Wpf.Tests.Regions
 
             bool firstNavigation = false;
             bool secondNavigation = false;
-            target.RequestNavigate(navigationUri, nr => firstNavigation = nr.Result.Value);
-            target.RequestNavigate(navigationUri, nr => secondNavigation = nr.Result.Value);
+            target.RequestNavigate(navigationUri, nr => firstNavigation = nr.Success);
+            target.RequestNavigate(navigationUri, nr => secondNavigation = nr.Success);
 
             Assert.Equal(2, confirmationRequests.Count);
 
@@ -732,6 +733,7 @@ namespace Prism.Wpf.Tests.Regions
         [Fact]
         public void BeforeNavigating_NavigatingEventIsRaised()
         {
+            ContainerLocator.SetContainerExtension(Mock.Of<IContainerExtension>());
             // Prepare
             object view = new object();
             Uri viewUri = new Uri(view.GetType().Name, UriKind.Relative);
@@ -766,7 +768,7 @@ namespace Prism.Wpf.Tests.Regions
 
             // Act
             bool isNavigationSuccessful = false;
-            target.RequestNavigate(viewUri, nr => isNavigationSuccessful = nr.Result == true);
+            target.RequestNavigate(viewUri, nr => isNavigationSuccessful = nr.Success == true);
 
             // Verify
             Assert.True(isNavigationSuccessful);
@@ -810,7 +812,7 @@ namespace Prism.Wpf.Tests.Regions
 
             // Act
             bool isNavigationSuccessful = false;
-            target.RequestNavigate(viewUri, nr => isNavigationSuccessful = nr.Result == true);
+            target.RequestNavigate(viewUri, nr => isNavigationSuccessful = nr.Success == true);
 
             // Verify
             Assert.True(isNavigationSuccessful);
@@ -850,7 +852,7 @@ namespace Prism.Wpf.Tests.Regions
             navigationCallback(true);
 
             Assert.NotNull(result);
-            Assert.Same(targetException, result.Error);
+            Assert.Same(targetException, result.Exception);
         }
 
         [Fact]
@@ -1002,7 +1004,7 @@ namespace Prism.Wpf.Tests.Regions
             RegionNavigationService target = new RegionNavigationService(container, contentLoader, journal);
 
             Exception error = null;
-            target.RequestNavigate(navigationUri, nr => error = nr.Error);
+            target.RequestNavigate(navigationUri, nr => error = nr.Exception);
 
             Assert.NotNull(error);
             Assert.IsType<InvalidOperationException>(error);
@@ -1021,7 +1023,7 @@ namespace Prism.Wpf.Tests.Regions
             };
 
             Exception error = null;
-            target.RequestNavigate(null, nr => error = nr.Error);
+            target.RequestNavigate(null, nr => error = nr.Exception);
 
             Assert.NotNull(error);
             Assert.IsType<ArgumentNullException>(error);
@@ -1062,7 +1064,7 @@ namespace Prism.Wpf.Tests.Regions
 
             // Act
             bool? isNavigationSuccessful = null;
-            target.RequestNavigate(new Uri("invalid", UriKind.Relative), nr => isNavigationSuccessful = nr.Result);
+            target.RequestNavigate(new Uri("invalid", UriKind.Relative), nr => isNavigationSuccessful = nr.Success);
 
             // Verify
             Assert.False(isNavigationSuccessful.Value);
@@ -1121,7 +1123,7 @@ namespace Prism.Wpf.Tests.Regions
 
             // Act
             bool? isNavigationSuccessful = null;
-            target.RequestNavigate(navigationUri, nr => isNavigationSuccessful = nr.Result);
+            target.RequestNavigate(navigationUri, nr => isNavigationSuccessful = nr.Success);
 
             // Verify
             view1Mock.VerifyAll();
@@ -1183,7 +1185,7 @@ namespace Prism.Wpf.Tests.Regions
 
             // Act
             bool? isNavigationSuccessful = null;
-            target.RequestNavigate(navigationUri, nr => isNavigationSuccessful = nr.Result);
+            target.RequestNavigate(navigationUri, nr => isNavigationSuccessful = nr.Success);
 
             // Verify
             viewModel1Mock.VerifyAll();

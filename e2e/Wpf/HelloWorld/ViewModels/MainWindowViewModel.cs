@@ -2,8 +2,8 @@
 using HelloWorld.Core;
 using Prism.Commands;
 using Prism.Mvvm;
-using Prism.Regions;
-using Prism.Services.Dialogs;
+using Prism.Navigation.Regions;
+using Prism.Dialogs;
 
 namespace HelloWorld.ViewModels
 {
@@ -35,7 +35,7 @@ namespace HelloWorld.ViewModels
         {
             _dialogService = dialogService;
             _regionManager = regionManager;
-            ShowDialogCommand = new DelegateCommand(ShowDialog);            
+            ShowDialogCommand = new DelegateCommand(ShowDialog);
         }
 
         private void ShowDialog()

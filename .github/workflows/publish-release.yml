@@ -1,0 +1,18 @@
+name: Publish Prism Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish-internal:
+    uses: avantipoint/workflow-templates/.github/workflows/deploy-nuget-from-release.yml@v1
+    secrets:
+      feedUrl: ${{ secrets.IN_HOUSE_NUGET_FEED }}
+      apiKey: ${{ secrets.IN_HOUSE_API_KEY }}
+
+  publish-commercial-plus:
+    uses: avantipoint/workflow-templates/.github/workflows/deploy-nuget-from-release.yml@v1
+    secrets:
+      feedUrl: ${{ secrets.PRISM_NUGET_FEED }}
+      apiKey: ${{ secrets.PRISM_NUGET_TOKEN }}

@@ -1,9 +1,10 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using Moq;
 using Prism.Ioc;
-using Prism.Regions;
+using Prism.Navigation.Regions;
 using Prism.Wpf.Tests.Mvvm;
 using Xunit;
 
@@ -16,6 +17,7 @@ namespace Prism.Wpf.Tests.Regions
         public void CanRegisterContentAndRetrieveIt()
         {
             var containerMock = new Mock<IContainerExtension>();
+            ContainerLocator.SetContainerExtension(containerMock.Object);
             containerMock.Setup(c => c.Resolve(typeof(MockContentObject))).Returns(new MockContentObject());
             var registry = new RegionViewRegistry(containerMock.Object);
 
@@ -43,7 +45,7 @@ namespace Prism.Wpf.Tests.Regions
             Assert.NotNull(listener.onViewRegisteredArguments);
             Assert.NotNull(listener.onViewRegisteredArguments.GetView);
 
-            var result = listener.onViewRegisteredArguments.GetView();
+            var result = listener.onViewRegisteredArguments.GetView(containerMock.Object);
             Assert.NotNull(result);
             Assert.IsType<MockContentObject>(result);
         }
@@ -51,6 +53,7 @@ namespace Prism.Wpf.Tests.Regions
         [Fact]
         public void CanRegisterContentAsDelegateAndRetrieveIt()
         {
+            ContainerLocator.SetContainerExtension(Mock.Of<IContainerExtension>());
             var registry = new RegionViewRegistry(null);
             var content = new MockContentObject();
 
@@ -63,7 +66,7 @@ namespace Prism.Wpf.Tests.Regions
         }
 
         [Fact]
-        public void ShouldNotPreventSubscribersFromBeingGarbageCollected()
+        public async Task ShouldNotPreventSubscribersFromBeingGarbageCollected()
         {
             var registry = new RegionViewRegistry(null);
             var subscriber = new MySubscriberClass();
@@ -72,6 +75,7 @@ namespace Prism.Wpf.Tests.Regions
             WeakReference subscriberWeakReference = new WeakReference(subscriber);
 
             subscriber = null;
+            await Task.Delay(50);
             GC.Collect();
 
             Assert.False(subscriberWeakReference.IsAlive);
@@ -119,6 +123,7 @@ namespace Prism.Wpf.Tests.Regions
             ViewModelLocatorFixture.ResetViewModelLocationProvider();
 
             var containerMock = new Mock<IContainerExtension>();
+            ContainerLocator.SetContainerExtension(containerMock.Object);
             containerMock.Setup(c => c.Resolve(typeof(Mocks.Views.Mock))).Returns(new Mocks.Views.Mock());
             containerMock.Setup(c => c.Resolve(typeof(Mocks.ViewModels.MockViewModel))).Returns(new Mocks.ViewModels.MockViewModel());
             var registry = new RegionViewRegistry(containerMock.Object);
@@ -141,6 +146,7 @@ namespace Prism.Wpf.Tests.Regions
             ViewModelLocatorFixture.ResetViewModelLocationProvider();
 
             var containerMock = new Mock<IContainerExtension>();
+            ContainerLocator.SetContainerExtension(containerMock.Object);
             containerMock.Setup(c => c.Resolve(typeof(Mocks.Views.MockOptOut))).Returns(new Mocks.Views.MockOptOut());
             containerMock.Setup(c => c.Resolve(typeof(Mocks.ViewModels.MockOptOutViewModel))).Returns(new Mocks.ViewModels.MockOptOutViewModel());
             var registry = new RegionViewRegistry(containerMock.Object);

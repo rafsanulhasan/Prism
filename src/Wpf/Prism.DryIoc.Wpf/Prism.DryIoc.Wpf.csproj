@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
   <PropertyGroup>
-    <TargetFrameworks>net461;net47;net6.0-windows</TargetFrameworks>
+    <TargetFrameworks>net462;net47;net6.0-windows</TargetFrameworks>
     <UseWPF>true</UseWPF>
     <RootNamespace>Prism.DryIoc</RootNamespace>
     <PackageId>Prism.DryIoc</PackageId>
@@ -12,7 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DryIoc.dll" />
+    <PackageReference Include="Prism.Container.DryIoc" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,7 +23,5 @@
     <Compile Update="Properties\Resources.Designer.cs" DesignTime="True" AutoGen="True" DependentUpon="Resources.resx" />
     <EmbeddedResource Update="Properties\Resources.resx" Generator="ResXFileCodeGenerator" LastGenOutput="Resources.Designer.cs" />
   </ItemGroup>
-
-  <Import Project="..\..\Containers\Prism.DryIoc.Shared\Prism.DryIoc.Shared.projitems" Label="Shared" />
 
 </Project>

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Windows.Controls;
 using Moq;
 using Prism.Ioc;
-using Prism.Regions;
+using Prism.Navigation.Regions;
 using Prism.Wpf.Tests.Mocks;
 using Xunit;
 
@@ -52,7 +52,7 @@ namespace Prism.Wpf.Tests.Regions
                 containerMock.Setup(c => c.Resolve(typeof(MockRegionAdapter)))
                              .Returns(regionAdapter);
                 ContainerLocator.ResetContainer();
-                ContainerLocator.SetContainerExtension(() => containerMock.Object);
+                ContainerLocator.SetContainerExtension(containerMock.Object);
 
                 regionAdapterMappings.RegisterMapping<ItemsControl, MockRegionAdapter>();
 

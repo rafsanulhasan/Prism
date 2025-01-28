@@ -1,8 +1,10 @@
 using System;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using Prism.Properties;
 
+#nullable enable
 namespace Prism.Commands
 {
     /// <summary>
@@ -46,7 +48,17 @@ namespace Prism.Commands
         ///</summary>
         public void Execute()
         {
-            _executeMethod();
+            try
+            {
+                _executeMethod();
+            }
+            catch (Exception ex)
+            {
+                if (!ExceptionHandler.CanHandle(ex))
+                    throw;
+
+                ExceptionHandler.Handle(ex, null);
+            }
         }
 
         /// <summary>
@@ -55,14 +67,26 @@ namespace Prism.Commands
         /// <returns>Returns <see langword="true"/> if the command can execute,otherwise returns <see langword="false"/>.</returns>
         public bool CanExecute()
         {
-            return _canExecuteMethod();
+            try
+            {
+                return _canExecuteMethod();
+            }
+            catch (Exception ex)
+            {
+                if (!ExceptionHandler.CanHandle(ex))
+                    throw;
+
+                ExceptionHandler.Handle(ex, null);
+
+                return false;
+            }
         }
 
         /// <summary>
         /// Handle the internal invocation of <see cref="ICommand.Execute(object)"/>
         /// </summary>
         /// <param name="parameter">Command Parameter</param>
-        protected override void Execute(object parameter)
+        protected override void Execute(object? parameter)
         {
             Execute();
         }
@@ -72,7 +96,7 @@ namespace Prism.Commands
         /// </summary>
         /// <param name="parameter"></param>
         /// <returns><see langword="true"/> if the Command Can Execute, otherwise <see langword="false" /></returns>
-        protected override bool CanExecute(object parameter)
+        protected override bool CanExecute(object? parameter)
         {
             return CanExecute();
         }
@@ -98,6 +122,102 @@ namespace Prism.Commands
         {
             _canExecuteMethod = canExecuteExpression.Compile();
             ObservesPropertyInternal(canExecuteExpression);
+            return this;
+        }
+
+        /// <summary>
+        /// Registers an callback if an exception is encountered while executing the <see cref="DelegateCommand"/>
+        /// </summary>
+        /// <param name="catch">The Callback</param>
+        /// <returns>The current instance of <see cref="DelegateCommand"/></returns>
+        public DelegateCommand Catch(Action<Exception> @catch)
+        {
+            ExceptionHandler.Register<Exception>(@catch);
+            return this;
+        }
+
+        /// <summary>
+        /// Registers an callback if an exception is encountered while executing the <see cref="DelegateCommand"/>
+        /// </summary>
+        /// <param name="catch">The Callback</param>
+        /// <returns>The current instance of <see cref="DelegateCommand"/></returns>
+        public DelegateCommand Catch(Action<Exception, object> @catch)
+        {
+            ExceptionHandler.Register<Exception>(@catch);
+            return this;
+        }
+
+        /// <summary>
+        /// Registers an callback if an exception is encountered while executing the <see cref="DelegateCommand"/>
+        /// </summary>
+        /// <typeparam name="TException">The Exception Type</typeparam>
+        /// <param name="catch">The Callback</param>
+        /// <returns>The current instance of <see cref="DelegateCommand"/></returns>
+        public DelegateCommand Catch<TException>(Action<TException> @catch)
+            where TException : Exception
+        {
+            ExceptionHandler.Register<TException>(@catch);
+            return this;
+        }
+
+        /// <summary>
+        /// Registers an callback if an exception is encountered while executing the <see cref="DelegateCommand"/>
+        /// </summary>
+        /// <typeparam name="TException">The Exception Type</typeparam>
+        /// <param name="catch">The Callback</param>
+        /// <returns>The current instance of <see cref="DelegateCommand"/></returns>
+        public DelegateCommand Catch<TException>(Action<TException, object> @catch)
+            where TException : Exception
+        {
+            ExceptionHandler.Register<TException>(@catch);
+            return this;
+        }
+
+        /// <summary>
+        /// Registers an async callback if an exception is encountered while executing the <see cref="DelegateCommand"/>
+        /// </summary>
+        /// <param name="catch">The Callback</param>
+        /// <returns>The current instance of <see cref="DelegateCommand"/></returns>
+        public DelegateCommand Catch(Func<Exception, Task> @catch)
+        {
+            ExceptionHandler.Register<Exception>(@catch);
+            return this;
+        }
+
+        /// <summary>
+        /// Registers an async callback if an exception is encountered while executing the <see cref="DelegateCommand"/>
+        /// </summary>
+        /// <param name="catch">The Callback</param>
+        /// <returns>The current instance of <see cref="DelegateCommand"/></returns>
+        public DelegateCommand Catch(Func<Exception, object, Task> @catch)
+        {
+            ExceptionHandler.Register<Exception>(@catch);
+            return this;
+        }
+
+        /// <summary>
+        /// Registers an async callback if an exception is encountered while executing the <see cref="DelegateCommand"/>
+        /// </summary>
+        /// <typeparam name="TException">The Exception Type</typeparam>
+        /// <param name="catch">The Callback</param>
+        /// <returns>The current instance of <see cref="DelegateCommand"/></returns>
+        public DelegateCommand Catch<TException>(Func<TException, Task> @catch)
+            where TException : Exception
+        {
+            ExceptionHandler.Register<TException>(@catch);
+            return this;
+        }
+
+        /// <summary>
+        /// Registers an async callback if an exception is encountered while executing the <see cref="DelegateCommand"/>
+        /// </summary>
+        /// <typeparam name="TException">The Exception Type</typeparam>
+        /// <param name="catch">The Callback</param>
+        /// <returns>The current instance of <see cref="DelegateCommand"/></returns>
+        public DelegateCommand Catch<TException>(Func<TException, object, Task> @catch)
+            where TException : Exception
+        {
+            ExceptionHandler.Register<TException>(@catch);
             return this;
         }
     }

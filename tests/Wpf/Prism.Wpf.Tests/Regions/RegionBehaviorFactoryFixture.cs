@@ -4,7 +4,7 @@ using System;
 using System.Linq;
 using Moq;
 using Prism.Ioc;
-using Prism.Regions;
+using Prism.Navigation.Regions;
 using Prism.Wpf.Tests.Mocks;
 using Xunit;
 
@@ -73,6 +73,39 @@ namespace Prism.Wpf.Tests.Regions
                 factory.CreateFromKey("Key1");
             });
 
+        }
+
+        [Fact]
+        public void ExistingBehavior_IsReplaced_WithCustomBehavior()
+        {
+            var expectedBehavior = new MockRegionBehaviorB();
+            var containerMock = new Mock<IContainerExtension>();
+            containerMock.Setup(c => c.Resolve(typeof(MockRegionBehaviorB))).Returns(expectedBehavior);
+
+            RegionBehaviorFactory factory = new RegionBehaviorFactory(containerMock.Object);
+
+            factory.AddIfMissing<MockRegionBehavior>("key1");
+            factory.AddOrReplace<MockRegionBehaviorB>("key1");
+
+            Assert.Single(factory);
+            Assert.True(factory.ContainsKey("key1"));
+            Assert.IsType<MockRegionBehaviorB>(factory.CreateFromKey("key1"));
+        }
+
+        [Fact]
+        public void MissingBehavior_IsAdded()
+        {
+            var expectedBehavior = new MockRegionBehaviorB();
+            var containerMock = new Mock<IContainerExtension>();
+            containerMock.Setup(c => c.Resolve(typeof(MockRegionBehaviorB))).Returns(expectedBehavior);
+
+            RegionBehaviorFactory factory = new RegionBehaviorFactory(containerMock.Object);
+
+            factory.AddOrReplace<MockRegionBehaviorB>("key1");
+
+            Assert.Single(factory);
+            Assert.True(factory.ContainsKey("key1"));
+            Assert.IsType<MockRegionBehaviorB>(factory.CreateFromKey("key1"));
         }
 
     }

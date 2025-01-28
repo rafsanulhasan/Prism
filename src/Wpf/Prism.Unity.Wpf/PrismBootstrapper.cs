@@ -1,5 +1,3 @@
-﻿using System;
-using Prism.Ioc;
 using Unity;
 
 namespace Prism.Unity

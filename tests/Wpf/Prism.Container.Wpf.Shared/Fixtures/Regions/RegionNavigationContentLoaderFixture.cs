@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using Prism.Ioc;
 using Prism.IocContainer.Wpf.Tests.Support.Mocks.Views;
-using Prism.Regions;
+using Prism.Navigation.Regions;
 using Xunit;
 using static Prism.Container.Wpf.Tests.ContainerHelper;
 
@@ -20,7 +20,7 @@ namespace Prism.Container.Wpf.Tests.Regions
             _container.Register(typeof(IRegionNavigationContentLoader), typeof(RegionNavigationContentLoader));
             _container.Register<IRegionNavigationJournal, RegionNavigationJournal>();
             ContainerLocator.ResetContainer();
-            ContainerLocator.SetContainerExtension(() => _container);
+            ContainerLocator.SetContainerExtension(_container);
         }
 
         [StaFact]
